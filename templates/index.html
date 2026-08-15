@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PractiGen - AI Practical File Assistant</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: #0D0D0D;
+            color: #FFFFFF;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 16px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Hero Video Background */
+        .hero-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+            opacity: 0.35;
+        }
+
+        /* Dark Overlay on Video */
+        .video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 20, 0.75);
+            z-index: -1;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 680px;
+            position: relative;
+            z-index: 1;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 38px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 4px;
+            line-height: 1.1;
+        }
+
+        .logo-practi {
+            color: #FFFFFF;
+        }
+
+        .logo-gen {
+            background: linear-gradient(135deg, #C4B5FD 0%, #7C3AED 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #9CA3AF;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .accent-line {
+            width: 120px;
+            height: 2px;
+            margin: 12px auto 0;
+            background: linear-gradient(90deg, transparent, #7C3AED, #06B6D4, transparent);
+            border-radius: 2px;
+            opacity: 0.8;
+        }
+
+        /* Main Form Card */
+        .main-card {
+            background: rgba(26, 26, 46, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(124, 58, 237, 0.25);
+            box-shadow: 0 10px 40px -10px rgba(124, 58, 237, 0.15);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #D1D5DB;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            background: rgba(13, 13, 21, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            color: #FFFFFF;
+            padding: 10px 14px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        input[type="text"]::placeholder,
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.35);
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            border-color: rgba(124, 58, 237, 0.8);
+            box-shadow: 0 0 12px rgba(124, 58, 237, 0.25);
+            background: rgba(13, 13, 21, 0.98);
+        }
+
+        textarea {
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        /* Disclaimer Box */
+        .disclaimer-box {
+            background: rgba(124, 58, 237, 0.06);
+            border-left: 3px solid rgba(124, 58, 237, 0.7);
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: #C4B5FD;
+            font-size: 12px;
+            line-height: 1.5;
+            margin: 12px 0 14px 0;
+        }
+
+        .disclaimer-title {
+            font-weight: 700;
+            margin-bottom: 3px;
+            color: #DDD6FE;
+        }
+
+        /* Generate Button */
+        .btn-generate {
+            width: 100%;
+            height: 44px;
+            background: linear-gradient(135deg, #7C3AED 0%, #06B6D4 100%);
+            border: none;
+            border-radius: 8px;
+            color: #FFFFFF;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 4px 16px rgba(124, 58, 237, 0.3);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-generate:hover:not(:disabled) {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading Bar */
+        .loading-bar-container {
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .loading-bar-progress {
+            width: 45%;
+            height: 100%;
+            background: linear-gradient(90deg, #7C3AED, #06B6D4);
+            border-radius: 3px;
+            animation: slidingBar 1.4s infinite cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slidingBar {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(230%); }
+        }
+
+        /* Error Box */
+        .error-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            color: #FCA5A5;
+            margin-top: 14px;
+            font-size: 13px;
+            display: none;
+        }
+
+        /* Result Section */
+        .result-section {
+            margin-top: 24px;
+            display: none;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .result-section.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result-card {
+            background: rgba(15, 32, 39, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            box-shadow: 0 10px 40px -10px rgba(6, 182, 212, 0.15);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .result-title {
+            color: #22D3EE;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .btn-copy {
+            background: rgba(6, 182, 212, 0.08);
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            color: #22D3EE;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-copy:hover {
+            background: rgba(6, 182, 212, 0.18);
+            border-color: rgba(6, 182, 212, 0.7);
+        }
+
+        .result-text {
+            white-space: pre-wrap;
+            color: #F3F4F6;
+            line-height: 1.7;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .reminder-box {
+            background: rgba(234, 179, 8, 0.06);
+            border-left: 3px solid rgba(234, 179, 8, 0.7);
+            color: #FDE047;
+            font-size: 12px;
+            line-height: 1.6;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-top: 16px;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            text-align: center;
+            color: #4B5563;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Video Background -->
+    <video autoplay loop muted playsinline class="hero-video">
+        <source src="/static/hero.mp4" type="video/mp4">
+    </video>
+
+    <!-- Dark Overlay -->
+    <div class="video-overlay"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1 class="logo"><span class="logo-practi">Practi</span><span class="logo-gen">Gen</span></h1>
+            <p class="subtitle">AI-powered practical file assistant for MSBTE Diploma Students</p>
+            <div class="accent-line"></div>
+        </header>
+
+        <!-- Main Card -->
+        <main class="main-card">
+            <form id="genForm">
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" placeholder="e.g. Cloud Computing" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="practical">Practical Name</label>
+                    <input type="text" id="practical" name="practical" placeholder="e.g. Practical No.3 - Create Virtual Machines using VMware" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="questions">Practical Related Questions</label>
+                    <textarea id="questions" name="questions" rows="4" placeholder="Paste all your practical questions here...&#10;e.g.&#10;1. Create a VM with Ubuntu, 4GB RAM, 2 cores, 40GB disk&#10;2. Install OS using ISO image&#10;3. Change RAM to 6GB and note the effect&#10;4. Remove VM from inventory without deleting files" required></textarea>
+                </div>
+
+                <div class="disclaimer-box">
+                    <div class="disclaimer-title">Important Note</div>
+                    · Copy the Conclusion into your practical file as-is.<br>
+                    · For questions that require program output or screenshots — run the practical yourself and stick the actual printout in the designated space in your booklet.<br>
+                    · AI answers are reference only — your executed output must be attached wherever the question asks for it.
+                </div>
+
+                <button type="submit" class="btn-generate" id="btnSubmit">
+                    <span id="btnSubmitText">Generate Practical Content</span>
+                </button>
+                <div class="loading-bar-container" id="loadingBar">
+                    <div class="loading-bar-progress"></div>
+                </div>
+            </form>
+        </main>
+
+        <!-- Error Box -->
+        <div class="error-box" id="errorBox"></div>
+
+        <!-- Result Section -->
+        <section class="result-section" id="resultSection">
+            <div class="result-card">
+                <div class="result-header">
+                    <span class="result-title">Generated Content</span>
+                    <button type="button" class="btn-copy" id="copyBtn">Copy All</button>
+                </div>
+                <pre class="result-text" id="resultText"></pre>
+                <div class="reminder-box">
+                    Remember: Where your question needs a program output, screenshot or printout — run it yourself and attach the actual output page in your booklet. Do not write AI text in those spaces.
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            PractiGen · Made for MSBTE Diploma Students
+        </footer>
+    </div>
+
+    <script>
+        const form = document.getElementById('genForm');
+        const btnSubmit = document.getElementById('btnSubmit');
+        const btnSubmitText = document.getElementById('btnSubmitText');
+        const loadingBar = document.getElementById('loadingBar');
+        const resultSection = document.getElementById('resultSection');
+        const resultText = document.getElementById('resultText');
+        const errorBox = document.getElementById('errorBox');
+        const copyBtn = document.getElementById('copyBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Hide previous results/errors
+            resultSection.classList.remove('active');
+            errorBox.style.display = 'none';
+
+            // Set loading state
+            btnSubmit.disabled = true;
+            btnSubmitText.textContent = 'Generating...';
+            loadingBar.style.display = 'block';
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    errorBox.textContent = data.error;
+                    errorBox.style.display = 'block';
+                } else if (data.result) {
+                    resultText.textContent = data.result;
+                    resultSection.classList.add('active');
+                } else {
+                    errorBox.textContent = 'Something went wrong.';
+                    errorBox.style.display = 'block';
+                }
+            } catch (err) {
+                errorBox.textContent = 'Something went wrong.';
+                errorBox.style.display = 'block';
+            } finally {
+                // Reset loading state
+                btnSubmit.disabled = false;
+                btnSubmitText.textContent = 'Generate Practical Content';
+                loadingBar.style.display = 'none';
+            }
+        });
+
+        copyBtn.addEventListener('click', () => {
+            const textToCopy = resultText.textContent;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy All';
+                }, 2000);
+            }).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = textToCopy;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy All';
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
